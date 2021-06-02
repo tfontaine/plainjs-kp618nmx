@@ -72,35 +72,49 @@ class BelleAcneAnalyzer extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+
+    this.fileDrag = null;
+    this.fileUpload= null;
+
+    this.imagePreview = null;
+    this.imagePreview2 = null;
+    this.uploadCaption = null;
   }
 
   connectedCallback() {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-  
-    this.shadowRoot.getElementById("file-drag").addEventListener("dragover", this.fileDragHover.bind(this), false);
-    this.shadowRoot.getElementById("file-drag").addEventListener("dragleave", this.fileDragHover.bind(this), false);
-    this.shadowRoot.getElementById("file-drag").addEventListener("drop", this.fileUploadHandler.bind(this), false);
-    this.shadowRoot.getElementById("file-upload").addEventListener("change", this.fileUploadHandler.bind(this), false); 
+
+    this.fileDrag = this.shadowRoot.getElementById("file-drag");
+    this.fileUpload = this.shadowRoot.getElementById("file-upload");
+
+    this.fileDrag.addEventListener("dragover", this.fileDragHover.bind(this), false);
+    this.fileDrag.addEventListener("dragleave", this.fileDragHover.bind(this), false);
+    this.fileDrag.addEventListener("drop", this.fileUploadHandler.bind(this), false);
+    this.fileUpload.addEventListener("change", this.fileUploadHandler.bind(this), false); 
  
-    this.shadowRoot.getElementById("Submit").addEventListener("click", this.submitImage, false);
-    this.shadowRoot.getElementById("Clear").addEventListener("click", this.clearImage, false);
+    this.shadowRoot.getElementById("Submit").addEventListener("click", this.submitImage.bind(this), false);
+    this.shadowRoot.getElementById("Clear").addEventListener("click", this.clearImage.bind(this), false);
+
+    this.imagePreview = this.shadowRoot.getElementById("image-preview");
+    this.imagePreview2 = this.shadowRoot.getElementById("image-preview2");
+    this.uploadCaption = this.shadowRoot.getElementById("upload-caption");
   }
 
   disconnectedCallback() {
-    this.shadowRoot.getElementById("file-drag").removeEventListener("dragover", this.fileDragHover.bind(this));
-    this.shadowRoot.getElementById("file-drag").removeEventListener("dragleave", this.fileDragHover.bind(this));
-    this.shadowRoot.getElementById("file-drag").removeEventListener("drop", this.fileUploadHandler.bind(this));
-    this.shadowRoot.getElementById("file-upload").removeEventListener("change", this.fileUploadHandler.bind(this));
+    this.fileDrag.removeEventListener("dragover", this.fileDragHover.bind(this));
+    this.fileDrag.removeEventListener("dragleave", this.fileDragHover.bind(this));
+    this.fileDrag.removeEventListener("drop", this.fileUploadHandler.bind(this));
+    this.fileUpload.removeEventListener("change", this.fileUploadHandler.bind(this));
 
-    this.shadowRoot.getElementById("Submit").removeEventListener("click", this.submitImage);
-    this.shadowRoot.getElementById("Clear").removeEventListener("click", this.clearImage);
+    this.shadowRoot.getElementById("Submit").submitImage.removeEventListener("click", this.submitImage.bind(this));
+    this.shadowRoot.getElementById("Clear").removeEventListener("click", this.clearImage.bind(this));
   }
 
   fileDragHover(event) {
     event.preventDefault();
     event.stopPropagation();
 
-    this.shadowRoot.getElementById("file-drag").className = event.type === "dragover" ? "upload-box dragover" : "upload-box";
+    this.fileDrag.className = event.type === "dragover" ? "upload-box dragover" : "upload-box";
   }
 
   fileUploadHandler(event) {
@@ -111,31 +125,48 @@ class BelleAcneAnalyzer extends HTMLElement {
     }
   }
 
-  fileClick() {
-  }
-
   submitImage() {
+    clearresult();
+
+    this.shadowRoot.getElementById("statusid").innerHTML = "predicting...";
+    loader.classList.remove("hidden");
+    if (!imagePreview2.src || !imagePreview2.src.startsWith("data")) {
+      window.alert("Please select an image before submit.");
+      return;
+    }
+
+    predictImage(imagePreview2.src);
   }
 
   clearImage() {
+    this.fileUpload.value = "";
+
+    this.imagePreview.src = "";
+    this.imagePreview2.src = "";
+    //this.predResult.innerHTML = "";
+    //this.predResult1.innerHTML = "";
+
+    this.hide(this.imagePreview);
+    //this.hide(this.imageDisplay);
+
+    //this.hide(this.predResult);
+    //this.hide(this.predResult1);
+    this.show(this.uploadCaption);
   }
 
   previewFile(file) {
     var fileName = encodeURI(file.name);
-    var imagePreview = this.shadowRoot.getElementById("image-preview");
-    var imagePreview2 = this.shadowRoot.getElementById("image-preview2");
-    var uploadCaption = this.shadowRoot.getElementById("upload-caption");
 
     var reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
-      imagePreview2.src = URL.createObjectURL(file);
+      this.imagePreview2.src = URL.createObjectURL(file);
 
-      this.show(imagePreview);
-      this.hide(uploadCaption);
+      this.show(this.imagePreview);
+      this.hide(this.uploadCaption);
   
       this.displayImage(reader.result, "image-preview");
-      imagePreview2.src = reader.result;
+      this.imagePreview2.src = reader.result;
     };
   }
 
