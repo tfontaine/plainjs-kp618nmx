@@ -13,7 +13,7 @@ template.innerHTML = /*html*/`
       opacity: 0.2;
     }
 
-    .upload_box {
+    .upload-box {
       font-size: 1rem;
       color: #666666;
       cursor: pointer;
@@ -29,17 +29,17 @@ template.innerHTML = /*html*/`
       margin: 1rem 0 2rem 0;
     }
 
-    .upload_box.dragover {
+    .upload-box.dragover {
       color: #eeeeee;
       border: 0.1rem solid rgb(0, 120, 212);
       box-shadow: inset 0 0 0 0.1rem rgb(0, 120, 212);
     }
 
-    .upload_box:hover {
+    .upload-box:hover {
       border-color: rgb(0, 120, 212);
     }
 
-    .upload_box #image_preview {
+    .upload-box #image-preview {
       max-width: 15rem;
       max-height: 15rem;
       box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.19);
@@ -56,17 +56,17 @@ template.innerHTML = /*html*/`
   </style>
 
   <div class="panel">
-		<input id="file_upload" class="hidden" type="file" accept="*" />
-  	<label for="file_upload" id="file_drag" class="upload_box">
-    	<div id="upload_caption">Drop image here or click to select</div>
-    	<img id="image_preview" class="hidden" />
-    	<img id="image_preview2" class="hidden" />
+		<input id="file-upload" class="hidden" type="file" accept="*" />
+  	<label for="file-upload" id="file-drag" class="upload-box">
+    	<div id="upload-caption">Drop image here or click to select</div>
+    	<img id="image-preview" class="hidden" />
+    	<img id="image-preview2" class="hidden" />
     </label>
   </div>
   <div class="" style="display: inline-block; padding-left: 110px;"></div>
-
   <button id="Submit">Submit</button>
   <button id="Clear">Clear</button>`;
+
 
 class BelleAcneAnalyzer extends HTMLElement {
   constructor() {
@@ -76,39 +76,57 @@ class BelleAcneAnalyzer extends HTMLElement {
 
   connectedCallback() {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
+  
+    this.shadowRoot.getElementById("file-drag").addEventListener("dragover", this.fileDragHover.bind(this), false);
+    this.shadowRoot.getElementById("file-drag").addEventListener("dragleave", this.fileDragHover.bind(this), false);
+    this.shadowRoot.getElementById("file-drag").addEventListener("drop", this.fileUploadHandler.bind(this), false);
+    this.shadowRoot.getElementById("file-upload").addEventListener("change", this.fileUploadHandler.bind(this), false); 
+ 
+    this.shadowRoot.getElementById("Submit").addEventListener("click", this.submitImage, false);
+    this.shadowRoot.getElementById("Clear").addEventListener("click", this.clearImage, false);
+  }
 
-    //this.shadowRoot.getElementById("file_drag").addEventListener("dragover", this.fileDragHover, false);
-    //this.shadowRoot.getElementById("file_drag").addEventListener("dragleave", this.fileDragHover, false);
-    //this.shadowRoot.getElementById("file_drag").addEventListener("drop", this.fileUploadHandler, false);
-    //this.shadowRoot.getElementById("file_upload").addEventListener("change", this.fileUploadHandler, false);
-    this.shadowRoot.getElementById("file_drag").onDragover = () => this.fileDragHover();
-    this.shadowRoot.getElementById("file_drag").onDragleave = () => this.fileDragHover();
-    this.shadowRoot.getElementById("file_drag").onDrop = () => this.fileUploadHandler();
-    this.shadowRoot.getElementById("file_upload").onChange = () => this.fileUploadHandler();
+  disconnectedCallback() {
+    this.shadowRoot.getElementById("file-drag").removeEventListener("dragover", this.fileDragHover.bind(this));
+    this.shadowRoot.getElementById("file-drag").removeEventListener("dragleave", this.fileDragHover.bind(this));
+    this.shadowRoot.getElementById("file-drag").removeEventListener("drop", this.fileUploadHandler.bind(this));
+    this.shadowRoot.getElementById("file-upload").removeEventListener("change", this.fileUploadHandler.bind(this));
 
-    this.shadowRoot.getElementById("Submit").onclick = () => this.submitImage();
-    this.shadowRoot.getElementById("Clear").onclick = () => this.clearImage();
+    this.shadowRoot.getElementById("Submit").removeEventListener("click", this.submitImage);
+    this.shadowRoot.getElementById("Clear").removeEventListener("click", this.clearImage);
   }
 
   fileDragHover(event) {
+    console.log("DRAGOVER");
+
     event.preventDefault();
     event.stopPropagation();
 
-    this.shadowRoot.getElementById("file_drag").className = event.type === "dragover" ? "upload-box dragover" : "upload-box";
+    this.shadowRoot.getElementById("file-drag").className = event.type === "dragover" ? "upload-box dragover" : "upload-box"; 
   }
 
   fileUploadHandler(event) {
+    console.log("UPLOADHANDLER");
+    console.log(this.parentNode);
+
     var files = event.target.files || event.dataTransfer.files;
-    this.fileDragHover(event);
+    event.preventDefault();
+    event.stopPropagation();
     for (var i = 0, file; (file = files[i]); i++) {
-      previewFile(file);
+      this.previewFile(file);
     }
   }
 
+  fileClick() {
+    console.log("ONCLICK");
+  }
+
   submitImage() {
+    console.log("SUBMIT");
   }
 
   clearImage() {
+    console.log("CLEAR");
   }
 
   previewFile(file) {
