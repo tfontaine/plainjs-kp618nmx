@@ -97,52 +97,60 @@ class BelleAcneAnalyzer extends HTMLElement {
   }
 
   fileDragHover(event) {
-    console.log("DRAGOVER");
-
     event.preventDefault();
     event.stopPropagation();
 
-    this.shadowRoot.getElementById("file-drag").className = event.type === "dragover" ? "upload-box dragover" : "upload-box"; 
+    this.shadowRoot.getElementById("file-drag").className = event.type === "dragover" ? "upload-box dragover" : "upload-box";
   }
 
   fileUploadHandler(event) {
-    console.log("UPLOADHANDLER");
-    console.log(this.parentNode);
-
     var files = event.target.files || event.dataTransfer.files;
-    event.preventDefault();
-    event.stopPropagation();
+    this.fileDragHover(event);
     for (var i = 0, file; (file = files[i]); i++) {
       this.previewFile(file);
     }
   }
 
   fileClick() {
-    console.log("ONCLICK");
   }
 
   submitImage() {
-    console.log("SUBMIT");
   }
 
   clearImage() {
-    console.log("CLEAR");
   }
 
   previewFile(file) {
     var fileName = encodeURI(file.name);
+    var imagePreview = this.shadowRoot.getElementById("image-preview");
+    var imagePreview2 = this.shadowRoot.getElementById("image-preview2");
+    var uploadCaption = this.shadowRoot.getElementById("upload-caption");
 
     var reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
       imagePreview2.src = URL.createObjectURL(file);
 
-      show(imagePreview);
-      hide(uploadCaption);
+      this.show(imagePreview);
+      this.hide(uploadCaption);
   
-      displayImage(reader.result, "image-preview");
+      this.displayImage(reader.result, "image-preview");
       imagePreview2.src = reader.result;
     };
+  }
+
+  displayImage(image, id) {
+    var display = this.shadowRoot.getElementById(id);
+    display.src = image;
+    this.show(display);
+  }
+
+  hide(el) {
+    el.classList.add("hidden");
+  }
+
+  show(el) {
+    el.classList.remove("hidden");
   }
 }
 
