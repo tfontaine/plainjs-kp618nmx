@@ -65,7 +65,11 @@ template.innerHTML = /*html*/`
   </div>
   <div class="" style="display: inline-block; padding-left: 110px;"></div>
   <button id="Submit">Submit</button>
-  <button id="Clear">Clear</button>`;
+  <button id="Clear">Clear</button>
+  <div class="">
+    <div id="pred-result" class="hidden"></div>
+    <div id="pred-result1" class="hidden"></div>
+  </div>`;
 
 
 class BelleAcneAnalyzer extends HTMLElement {
@@ -79,6 +83,9 @@ class BelleAcneAnalyzer extends HTMLElement {
     this.imagePreview = null;
     this.imagePreview2 = null;
     this.uploadCaption = null;
+
+    this.predResult = null;
+    this.predResult1 = null;
   }
 
   connectedCallback() {
@@ -98,6 +105,9 @@ class BelleAcneAnalyzer extends HTMLElement {
     this.imagePreview = this.shadowRoot.getElementById("image-preview");
     this.imagePreview2 = this.shadowRoot.getElementById("image-preview2");
     this.uploadCaption = this.shadowRoot.getElementById("upload-caption");
+
+    this.predResult = this.shadowRoot.getElementById("pred-result");
+    this.predResult1 = this.shadowRoot.getElementById("pred-result1");
   }
 
   disconnectedCallback() {
@@ -126,16 +136,12 @@ class BelleAcneAnalyzer extends HTMLElement {
   }
 
   submitImage() {
-    clearresult();
-
-    this.shadowRoot.getElementById("statusid").innerHTML = "predicting...";
-    loader.classList.remove("hidden");
-    if (!imagePreview2.src || !imagePreview2.src.startsWith("data")) {
+    if (!this.imagePreview2.src || !this.imagePreview2.src.startsWith("data")) {
       window.alert("Please select an image before submit.");
       return;
     }
 
-    predictImage(imagePreview2.src);
+    this.predictImage(this.imagePreview2.src);
   }
 
   clearImage() {
@@ -143,14 +149,13 @@ class BelleAcneAnalyzer extends HTMLElement {
 
     this.imagePreview.src = "";
     this.imagePreview2.src = "";
-    //this.predResult.innerHTML = "";
-    //this.predResult1.innerHTML = "";
+    this.predResult.innerHTML = "";
+    this.predResult1.innerHTML = "";
 
     this.hide(this.imagePreview);
-    //this.hide(this.imageDisplay);
 
-    //this.hide(this.predResult);
-    //this.hide(this.predResult1);
+    this.hide(this.predResult);
+    this.hide(this.predResult1);
     this.show(this.uploadCaption);
   }
 
@@ -173,8 +178,45 @@ class BelleAcneAnalyzer extends HTMLElement {
   displayImage(image, id) {
     var display = this.shadowRoot.getElementById(id);
     display.src = image;
+
     this.show(display);
   }
+
+  predictImage(image) {
+    this.predResult.innerHTML = "predicting...";
+    this.show(this.predResult);
+
+    fetch("https://diseases.skinai.net/predict_torus", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(image)
+    })
+      .then(resp => {
+        if (resp.ok) {
+          resp.json().then(data => {
+            this.displayResult(data);
+          });
+        }
+      })
+      .catch(err => {
+        console.log("An error occured", err.message);
+        window.alert("Oops! Something went wrong.");
+      });
+  }
+
+  displayResult(data) {
+    if (data.error == 1) {
+      this.predResult.innerHTML = data.msg;
+    } else {
+      this.predResult.innerHTML = data.result1;
+      this.predResult1.innerHTML = data.result2;
+    }
+
+    this.show(this.predResult);
+    this.show(this.predResult1);
+}
 
   hide(el) {
     el.classList.add("hidden");
