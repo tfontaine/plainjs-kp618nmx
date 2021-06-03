@@ -141,7 +141,8 @@ class BelleAcneAnalyzer extends HTMLElement {
       return;
     }
 
-    this.predictImage(this.imagePreview2.src);
+    //this.predictImage(this.imagePreview2.src);
+    this.fakePredictImage(this.imagePreview2.src);
   }
 
   clearImage() {
@@ -216,7 +217,16 @@ class BelleAcneAnalyzer extends HTMLElement {
 
     this.show(this.predResult);
     this.show(this.predResult1);
-}
+  }
+
+  fakePredictImage(image) {
+    var data = {
+      "result1":"<p><b>Possible Disease Groups:</b><br>keras: 1.0 <br>fungal: 0.41</p>", 
+      "result2":"<p><b>Possible Diseases and Other Features:</b><br>psoriasis: 1.0<br>scalp: 0.85<br>plaquepsoriasis: 0.67<br>pustularpsoriasis: 0.34<br>tineacapitis: 0.33<br>autoimmune: 0.3</p>"
+    };
+
+    this.displayResult(data);
+  } 
 
   hide(el) {
     el.classList.add("hidden");
